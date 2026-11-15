@@ -79,6 +79,7 @@ class MusicPlayer(context: Context, private val log: (String) -> Unit) {
         if (theme != null || themeRes == 0) return
         runCatching {
             theme = MediaPlayer.create(appContext, themeRes, attributes, 0)?.apply { isLooping = true }
+            log("테마곡 준비: 길이 ${(theme?.duration ?: -1) / 1000}초")
             applyVolume()
         }.onFailure { log("테마곡 준비 실패: ${it.message}") }
     }

@@ -6,10 +6,14 @@ import com.changbak.story.R
 /** 부모가 고르는 아이의 음악 취향. 분위기에 따라 재생할 테마곡이 정해진다. */
 class MusicPrefs(context: Context) {
 
+    /**
+     * 분위기별 테마곡. 지금은 Suno로 만든 곡 한 곡(theme_main)만 있어서 모두 같은 곡을 튼다.
+     * 분위기별 곡이 생기면 trackRes만 각각 바꿔 끼우면 된다.
+     */
     enum class Mood(val label: String, val prompt: String, val trackRes: Int) {
-        BRIGHT("신나는", "bright and cheerful", R.raw.theme_bright),
-        CALM("잔잔한", "calm and gentle, lullaby-like", R.raw.theme_calm),
-        ADVENTURE("모험 가득한", "adventurous and playful, marching feel", R.raw.theme_adventure),
+        BRIGHT("신나는", "bright and cheerful", R.raw.theme_main),
+        CALM("잔잔한", "calm and gentle, lullaby-like", R.raw.theme_main),
+        ADVENTURE("모험 가득한", "adventurous and playful, marching feel", R.raw.theme_main),
     }
 
     enum class Tempo(val label: String, val prompt: String) {
