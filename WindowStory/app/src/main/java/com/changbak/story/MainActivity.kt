@@ -31,7 +31,6 @@ import com.changbak.story.trip.TripListener
 import com.changbak.story.ui.SceneView
 import com.changbak.story.vehicle.VehicleSignals
 import com.changbak.story.voice.Narrator
-import com.changbak.story.voice.VoiceInput
 
 /**
  * 창밖 이야기: 경로와 남은 시간에 맞춰 동화를 들려주는 뒷좌석 아이용 앱.
@@ -46,7 +45,6 @@ class MainActivity : Activity(), StoryOutput, TripListener, VehicleSignals.Liste
     private lateinit var prefs: MusicPrefs
     private lateinit var music: MusicPlayer
     private lateinit var narrator: Narrator
-    private lateinit var voice: VoiceInput
     private lateinit var engine: StoryEngine
     private lateinit var demo: DemoTripSource
     private lateinit var navi: NaviTripSource
@@ -81,7 +79,6 @@ class MainActivity : Activity(), StoryOutput, TripListener, VehicleSignals.Liste
     private lateinit var startButton: Button
     private lateinit var speedButton: Button
     private lateinit var beltButton: Button
-    private lateinit var micButton: ImageButton
     private lateinit var musicButton: ImageButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -104,15 +101,6 @@ class MainActivity : Activity(), StoryOutput, TripListener, VehicleSignals.Liste
         demo = DemoTripSource(this)
         navi = NaviTripSource(this, this)
         vehicle = VehicleSignals(this, this)
-        voice = VoiceInput(
-            context = this,
-            log = ::log,
-            onIntent = ::onVoiceIntent,
-            onListeningChanged = { listening ->
-                // 듣는 중에는 마이크 버튼을 분홍색으로 바꾼다.
-                micButton.setColorFilter(getColor(if (listening) R.color.pink else R.color.ink))
-            },
-        )
 
         findViewById<TextView>(R.id.storyTitle).text = engine.title
         sceneView.chapterCount = engine.chapterCount
@@ -123,7 +111,6 @@ class MainActivity : Activity(), StoryOutput, TripListener, VehicleSignals.Liste
         refreshStatus()
 
         narrator.start()
-        voice.start()
         vehicle.start()
         navi.start()
     }
@@ -134,7 +121,6 @@ class MainActivity : Activity(), StoryOutput, TripListener, VehicleSignals.Liste
         navi.release()
         vehicle.release()
         placeAlerts?.release()
-        voice.release()
         narrator.release()
         music.release()
         super.onDestroy()
@@ -158,7 +144,6 @@ class MainActivity : Activity(), StoryOutput, TripListener, VehicleSignals.Liste
         startButton = findViewById(R.id.startButton)
         speedButton = findViewById(R.id.speedButton)
         beltButton = findViewById(R.id.beltButton)
-        micButton = findViewById(R.id.micButton)
         musicButton = findViewById(R.id.musicButton)
     }
 
@@ -168,7 +153,6 @@ class MainActivity : Activity(), StoryOutput, TripListener, VehicleSignals.Liste
         }
         findViewById<ImageButton>(R.id.askButton).setOnClickListener { engine.onAskRemaining() }
         findViewById<Button>(R.id.questButton).setOnClickListener { engine.onQuestFound() }
-        micButton.setOnClickListener { voice.listen() }
         musicButton.setOnClickListener {
             // 음악 취향은 정차 중에만 바꿀 수 있다.
             if (!isMoving()) {
@@ -397,16 +381,6 @@ class MainActivity : Activity(), StoryOutput, TripListener, VehicleSignals.Liste
             startPlaceAlertsIfAllowed()
         } else {
             log("위치 권한이 없어 실제 주행의 장소 장면은 나오지 않아요")
-        }
-    }
-
-    // ---------- 음성 ----------
-
-    private fun onVoiceIntent(intent: VoiceInput.Intent, heard: String) {
-        when (intent) {
-            VoiceInput.Intent.ASK_REMAINING -> engine.onAskRemaining()
-            VoiceInput.Intent.QUEST_FOUND -> engine.onQuestFound()
-            VoiceInput.Intent.UNKNOWN -> log("알아듣지 못했어요: \"$heard\"")
         }
     }
 

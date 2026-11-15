@@ -87,4 +87,4 @@ git merge main
 
 ## 음원(Suno)
 
-Suno로 만든 곡은 **유료 요금제 계정**으로 생성한 것만 쓸 수 있습니다. 곡을 바꿀 때는 `WindowStory/app/src/main/res/raw/`의 같은 파일 이름(`theme_bright.wav`, `theme_calm.wav`, `theme_adventure.wav`)으로 교체하고 `content/` 브랜치로 PR을 엽니다. 용량이 큰 파일(수십 MB)은 먼저 팀에 알려 주세요.
+Suno로 만든 곡은 **유료 요금제 계정**으로 생성한 것만 쓸 수 있습니다. 테마곡은 `WindowStory/app/src/main/res/raw/theme_main.ogg` 한 곡이고, 곡을 바꿀 때는 같은 파일 이름으로 교체한 뒤 `content/` 브랜치로 PR을 엽니다. Android는 `.ogg`, `.mp3`, `.m4a(AAC)`를 재생할 수 있습니다. Suno에서 받은 `.m4a`가 Opus 형식이면 `ffmpeg -i 곡.m4a -c:a copy theme_main.ogg`로 형식만 바꿔 넣으세요. 용량이 큰 파일(수십 MB)은 먼저 팀에 알려 주세요.

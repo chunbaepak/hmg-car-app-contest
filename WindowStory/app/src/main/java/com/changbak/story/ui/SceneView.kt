@@ -13,13 +13,14 @@ import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.View
 import kotlin.math.PI
-import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sin
 
 /**
- * 동화책 느낌의 배경 장면. 하늘, 언덕, 강, 마을, 목적지로 이어지는 길, 자동차, 이야기꾼 여우 루루를 그린다.
+ * 동화책 느낌의 배경 장면. 하늘, 언덕, 호수, 마을, 목적지로 이어지는 길, 자동차, 이야기꾼 여우 루루를 그린다.
  *
+ * 달리는 동안에는 길의 점선뿐 아니라 길가의 나무와 집, 땅의 줄무늬가 함께 다가와서
+ * 자동차가 앞으로 나아가는 것처럼 보인다.
  * 길 위의 별은 다음 장이 시작되는 지점이고, 깃발은 목적지다.
  * 진행률이 오를수록 별과 깃발이 자동차 쪽으로 다가온다.
  */
@@ -36,7 +37,7 @@ class SceneView @JvmOverloads constructor(
         }
     var chapterCount = 4
 
-    /** true면 길의 점선이 흘러 자동차가 달리는 것처럼 보인다. */
+    /** true면 길과 주변 풍경이 다가와 자동차가 달리는 것처럼 보인다. */
     var moving = false
         set(value) {
             if (field == value) return
@@ -52,8 +53,20 @@ class SceneView @JvmOverloads constructor(
             invalidate()
         }
 
-    private class Tree(val x: Float, val y: Float, val size: Float, val tone: Int)
-    private class House(val x: Float, val y: Float, val w: Float, val h: Float, val color: Int, val roof: Int)
+    /**
+     * 길가의 나무나 집 하나. 화면 좌표가 아니라 "길을 따라 얼마나 멀리 있는지"(dist)로 위치를 기억한다.
+     * 차가 달리면 dist가 줄어들어 점점 가까워지고 커지며, 화면 아래로 지나가면 다시 지평선에서 나타난다.
+     */
+    private class Scenery(
+        val dist: Float,      // 0(바로 앞)~1(지평선). 정지 상태에서의 거리
+        val side: Float,      // -1 길 왼쪽, +1 길 오른쪽
+        val lateral: Float,   // 길에서 옆으로 떨어진 정도(길 반폭의 배수)
+        val isHouse: Boolean,
+        val size: Float,      // 나무 크기 또는 집 반폭
+        val tall: Float,      // 집 높이
+        val color: Int,
+        val roof: Int,
+    )
 
     private val fill = Paint(Paint.ANTI_ALIAS_FLAG)
     private val stroke = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeCap = Paint.Cap.ROUND }
@@ -62,10 +75,12 @@ class SceneView @JvmOverloads constructor(
     private var skyShader: Shader? = null
     private var groundShader: Shader? = null
     private var sunShader: Shader? = null
-    private val trees = mutableListOf<Tree>()
-    private val houses = mutableListOf<House>()
 
-    private var roadPhase = 0f
+    /** dist 오름차순으로 정렬해 둔다. */
+    private var scenery = emptyList<Scenery>()
+
+    /** 지금까지 달린 거리(0~1을 되풀이). 길의 점선, 땅의 줄무늬, 나무와 집이 모두 이 값으로 함께 움직인다. */
+    private var travel = 0f
     private var cloudShift = 0f
     private var lastFrame = 0L
 
@@ -73,6 +88,12 @@ class SceneView @JvmOverloads constructor(
     private fun roadX(u: Float) = width * (0.705f - 0.03f * u + 0.075f * sin(u * PI.toFloat() * 2.1f) * (1f - 0.35f * u))
     private fun roadY(u: Float) = height * (0.31f + 0.72f * (1f - u).pow(1.6f))
     private fun roadHalf(u: Float) = 10f + width * 0.105f * (1f - u).pow(1.7f)
+
+    /** 거리(0~1)를 화면의 길 위치 u로 바꾼다. 가까울수록 빨리 다가오는 것처럼 보이게 한다. */
+    private fun distToU(dist: Float) = dist.pow(0.75f)
+
+    /** 멀수록 작게 그리는 비율. 지평선에서는 0이라 새로 나타나는 것이 티 나지 않는다. */
+    private fun depthScale(u: Float) = 1.3f * (1f - u).pow(1.5f)
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         val hf = h.toFloat()
@@ -90,50 +111,44 @@ class SceneView @JvmOverloads constructor(
             w * 0.16f, hf * 0.6f, w * 0.42f,
             intArrayOf(0x99FFF3B8.toInt(), 0x00FFF3B8), null, Shader.TileMode.CLAMP,
         )
-        placeScenery(w.toFloat(), hf)
+        if (scenery.isEmpty()) scenery = makeScenery()
     }
 
-    /** 나무와 집을 길과 강을 피해 흩어 놓는다. 위치는 항상 같다. */
-    private fun placeScenery(w: Float, h: Float) {
-        trees.clear()
-        houses.clear()
+    /** 길 양옆에 나무와 집을 흩어 놓는다. 항상 같은 배치가 나온다. */
+    private fun makeScenery(): List<Scenery> {
         var seed = 12345L
         fun rnd(): Float {
             seed = (seed * 1103515245L + 12345L) and 0x7fffffffL
             return seed / 2147483647f
         }
-        fun freeOfRoad(x: Float, y: Float, margin: Float): Boolean {
-            val u = (1f - ((y / h - 0.31f) / 0.72f).coerceIn(0f, 1f).pow(1f / 1.6f))
-            return abs(x - roadX(u)) > roadHalf(u) + margin
-        }
         val houseColors = intArrayOf(0xFFF7E3C8.toInt(), 0xFFE5D9F2.toInt(), 0xFFD6E6F7.toInt(), 0xFFFAD9D9.toInt())
         val roofColors = intArrayOf(0xFFE89A8B.toInt(), 0xFFA9A2D6.toInt(), 0xFF8DB7E2.toInt(), 0xFFE9A6B8.toInt())
-        repeat(60) {
-            val y = h * (0.40f + 0.24f * rnd())
-            val x = w * (0.30f + 0.70f * rnd())
-            val scale = ((y / h - 0.34f) / 0.3f).coerceIn(0.25f, 1.2f)
-            val hw = 44f * scale * (0.8f + 0.5f * rnd())
-            val hh = 78f * scale * (0.7f + 0.9f * rnd())
+        val list = mutableListOf<Scenery>()
+        // 길이 화면 오른쪽에 있어서 왼쪽 들판이 넓다. 왼쪽에 더 많이, 더 멀리까지 놓는다.
+        repeat(TREE_COUNT) { i ->
+            val left = i % 10 < 7
+            val lateral = if (left) 1.5f + 15f * rnd().pow(1.4f) else 1.5f + 5f * rnd()
+            list.add(
+                Scenery(
+                    dist = rnd(), side = if (left) -1f else 1f, lateral = lateral, isHouse = false,
+                    size = 46f + 30f * rnd(), tall = 0f,
+                    color = TREE_TONES[(rnd() * TREE_TONES.size).toInt().coerceIn(0, TREE_TONES.size - 1)], roof = 0,
+                ),
+            )
+        }
+        repeat(HOUSE_COUNT) { i ->
+            val left = i % 4 != 0
             val pick = (rnd() * 4).toInt().coerceIn(0, 3)
-            val tooClose = houses.any { abs(it.x - x) < (it.w + hw) * 1.25f && abs(it.y - y) < 60f }
-            if (houses.size < 12 && !tooClose && freeOfRoad(x, y, hw + 24f)) {
-                houses.add(House(x, y, hw, hh, houseColors[pick], roofColors[pick]))
-            }
+            list.add(
+                Scenery(
+                    dist = (i + rnd() * 0.8f) / HOUSE_COUNT, side = if (left) -1f else 1f,
+                    lateral = if (left) 2.6f + 9f * rnd() else 2.6f + 3f * rnd(), isHouse = true,
+                    size = 40f + 22f * rnd(), tall = 70f + 70f * rnd(),
+                    color = houseColors[pick], roof = roofColors[pick],
+                ),
+            )
         }
-        repeat(220) {
-            val y = h * (0.39f + 0.60f * rnd())
-            val x = w * rnd()
-            val depth = ((y / h - 0.36f) / 0.64f).coerceIn(0f, 1f)
-            val size = 16f + 70f * depth.pow(1.4f) * (0.7f + 0.6f * rnd())
-            val inRiver = x < w * 0.17f && y < h * 0.62f
-            val inFoxCorner = x < w * 0.36f && y > h * 0.60f
-            val underBar = y > h * 0.86f && x > w * 0.25f
-            if (trees.size < 70 && !inRiver && !inFoxCorner && !underBar && freeOfRoad(x, y, size + 26f)) {
-                trees.add(Tree(x, y, size, (rnd() * 3).toInt()))
-            }
-        }
-        trees.sortBy { it.y }
-        houses.sortBy { it.y }
+        return list.sortedBy { it.dist }
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -143,19 +158,20 @@ class SceneView @JvmOverloads constructor(
         val dt = ((now - lastFrame).coerceIn(0L, 60L)) / 1000f
         lastFrame = now
         if (moving) {
-            roadPhase = (roadPhase + dt * 0.9f) % 1f
-            cloudShift = (cloudShift + dt * 6f) % (w * 1.4f)
+            travel = (travel + dt * TRAVEL_PER_SEC) % 1f
+            cloudShift = (cloudShift + dt * 3f) % (w * 1.4f)
         }
 
         drawSky(canvas, w, h)
         drawHills(canvas, w, h)
         drawGround(canvas, w, h)
-        drawRiver(canvas, w, h)
-        houses.forEach { drawHouse(canvas, it) }
+        drawLake(canvas, w, h)
+        drawGroundBands(canvas, w, h)
         drawRoad(canvas)
-        trees.forEach { drawTree(canvas, it) }
+        drawScenery(canvas, nearerThanCar = false)
         drawMarkers(canvas)
         drawCar(canvas)
+        drawScenery(canvas, nearerThanCar = true)
         drawFox(canvas, w * 0.125f, h * 0.715f, h / 1210f * 0.92f, now)
 
         if (moving || talking) postInvalidateOnAnimation()
@@ -212,68 +228,101 @@ class SceneView @JvmOverloads constructor(
         fill.shader = null
     }
 
-    private fun drawRiver(canvas: Canvas, w: Float, h: Float) {
-        fill.color = 0xFF8FCBF6.toInt()
+    /** 멀리 보이는 호수. 지평선 가까이에 있어서 달려도 거의 움직이지 않는다. */
+    private fun drawLake(canvas: Canvas, w: Float, h: Float) {
+        fill.color = 0xFF9DD2F7.toInt()
         path.reset()
-        path.moveTo(0f, h * 0.39f)
-        path.quadTo(w * 0.10f, h * 0.40f, w * 0.16f, h * 0.47f)
-        path.quadTo(w * 0.20f, h * 0.55f, w * 0.10f, h * 0.63f)
-        path.lineTo(0f, h * 0.66f)
+        path.moveTo(0f, h * 0.405f)
+        path.quadTo(w * 0.12f, h * 0.40f, w * 0.21f, h * 0.425f)
+        path.quadTo(w * 0.15f, h * 0.465f, 0f, h * 0.47f)
         path.close()
         canvas.drawPath(path, fill)
         stroke.color = 0x99FFFFFF.toInt()
-        stroke.strokeWidth = 4f
-        for (i in 0 until 5) {
-            val y = h * (0.43f + 0.04f * i)
-            canvas.drawLine(w * (0.01f + 0.015f * (i % 2)), y, w * (0.05f + 0.015f * (i % 2)), y, stroke)
-        }
-        // 다리
-        fill.color = 0xFFF6EBDD.toInt()
-        canvas.drawRect(0f, h * 0.405f, w * 0.14f, h * 0.425f, fill)
-        fill.color = 0xFF8FCBF6.toInt()
+        stroke.strokeWidth = 3f
         for (i in 0 until 3) {
-            rect.set(w * (0.008f + 0.045f * i), h * 0.412f, w * (0.04f + 0.045f * i), h * 0.46f)
-            canvas.drawArc(rect, 180f, 180f, true, fill)
+            val y = h * (0.42f + 0.014f * i)
+            canvas.drawLine(w * (0.02f + 0.03f * i), y, w * (0.07f + 0.03f * i), y, stroke)
         }
     }
 
-    private fun drawHouse(canvas: Canvas, house: House) {
-        fill.color = house.color
-        rect.set(house.x - house.w, house.y - house.h, house.x + house.w, house.y)
-        canvas.drawRoundRect(rect, 6f, 6f, fill)
+    /** 땅의 옅은 줄무늬. 길의 점선과 같은 속도로 다가와서 땅 전체가 뒤로 흐르는 것처럼 보인다. */
+    private fun drawGroundBands(canvas: Canvas, w: Float, h: Float) {
+        fill.color = 0x16FFFFFF
+        val top = h * 0.445f
+        for (i in 0 until BAND_COUNT) {
+            val near = ((i.toFloat() / BAND_COUNT - travel) % 1f + 1f) % 1f
+            val far = (near + 0.5f / BAND_COUNT).coerceAtMost(1f)
+            val yNear = roadY(distToU(near))
+            val yFar = roadY(distToU(far)).coerceAtLeast(top)
+            if (yNear > yFar) canvas.drawRect(0f, yFar, w, yNear, fill)
+        }
+    }
+
+    /**
+     * 나무와 집을 먼 것부터 그린다. 자동차보다 앞쪽(가까운 쪽)에 있는 것은 자동차를 그린 뒤에 그려서
+     * 앞뒤 순서가 맞게 한다.
+     */
+    private fun drawScenery(canvas: Canvas, nearerThanCar: Boolean) {
+        val n = scenery.size
+        if (n == 0) return
+        // 지금 거리 = (처음 거리 - 달린 거리)를 0~1로 되돌린 값. 처음 거리가 travel 바로 아래인 것이 가장 멀다.
+        var split = scenery.indexOfFirst { it.dist >= travel }
+        if (split < 0) split = n
+        for (k in 0 until n) {
+            val index = ((split - 1 - k) % n + n) % n
+            val item = scenery[index]
+            val u = distToU(((item.dist - travel) % 1f + 1f) % 1f)
+            if ((u < CAR_U) != nearerThanCar) continue
+            val scale = depthScale(u)
+            if (scale < 0.03f) continue
+            val x = roadX(u) + item.side * roadHalf(u) * item.lateral
+            val y = roadY(u)
+            val reach = item.size * scale * 1.5f
+            if (x < -reach || x > width + reach) continue
+            if (item.isHouse) drawHouse(canvas, x, y, item.size * scale, item.tall * scale, item.color, item.roof)
+            else drawTree(canvas, x, y, item.size * scale, item.color)
+        }
+    }
+
+    private fun drawHouse(canvas: Canvas, x: Float, y: Float, hw: Float, hh: Float, color: Int, roof: Int) {
+        fill.color = 0x1F000000
+        rect.set(x - hw * 1.2f, y - hw * 0.14f, x + hw * 1.2f, y + hw * 0.18f)
+        canvas.drawOval(rect, fill)
+        fill.color = color
+        rect.set(x - hw, y - hh, x + hw, y)
+        canvas.drawRoundRect(rect, hw * 0.12f, hw * 0.12f, fill)
         // 세모 지붕
-        fill.color = house.roof
+        fill.color = roof
         path.reset()
-        path.moveTo(house.x - house.w * 1.15f, house.y - house.h + 2f)
-        path.lineTo(house.x, house.y - house.h - house.w * 0.75f)
-        path.lineTo(house.x + house.w * 1.15f, house.y - house.h + 2f)
+        path.moveTo(x - hw * 1.15f, y - hh + 2f)
+        path.lineTo(x, y - hh - hw * 0.75f)
+        path.lineTo(x + hw * 1.15f, y - hh + 2f)
         path.close()
         canvas.drawPath(path, fill)
         // 창문
         fill.color = 0xD9FFFFFF.toInt()
-        val rows = if (house.h > house.w * 1.6f) 2 else 1
+        val rows = if (hh > hw * 1.6f) 2 else 1
         for (r in 0 until rows) for (c in 0 until 2) {
-            val cx = house.x - house.w * 0.45f + house.w * 0.9f * c
-            val top = house.y - house.h * (0.82f - 0.42f * r)
-            rect.set(cx - house.w * 0.2f, top, cx + house.w * 0.2f, top + house.h * 0.22f)
-            canvas.drawRoundRect(rect, 4f, 4f, fill)
+            val cx = x - hw * 0.45f + hw * 0.9f * c
+            val top = y - hh * (0.82f - 0.42f * r)
+            rect.set(cx - hw * 0.2f, top, cx + hw * 0.2f, top + hh * 0.22f)
+            canvas.drawRoundRect(rect, hw * 0.08f, hw * 0.08f, fill)
         }
     }
 
-    private fun drawTree(canvas: Canvas, tree: Tree) {
-        val s = tree.size
+    private fun drawTree(canvas: Canvas, x: Float, y: Float, s: Float, color: Int) {
         fill.color = 0x22000000
-        rect.set(tree.x - s * 0.7f, tree.y - s * 0.12f, tree.x + s * 0.7f, tree.y + s * 0.16f)
+        rect.set(x - s * 0.7f, y - s * 0.12f, x + s * 0.7f, y + s * 0.16f)
         canvas.drawOval(rect, fill)
         fill.color = 0xFFA9805E.toInt()
-        rect.set(tree.x - s * 0.1f, tree.y - s * 0.7f, tree.x + s * 0.1f, tree.y)
+        rect.set(x - s * 0.1f, y - s * 0.7f, x + s * 0.1f, y)
         canvas.drawRoundRect(rect, s * 0.08f, s * 0.08f, fill)
-        fill.color = TREE_TONES[tree.tone % TREE_TONES.size]
-        canvas.drawCircle(tree.x, tree.y - s * 1.05f, s * 0.62f, fill)
-        canvas.drawCircle(tree.x - s * 0.42f, tree.y - s * 0.78f, s * 0.48f, fill)
-        canvas.drawCircle(tree.x + s * 0.42f, tree.y - s * 0.78f, s * 0.48f, fill)
+        fill.color = color
+        canvas.drawCircle(x, y - s * 1.05f, s * 0.62f, fill)
+        canvas.drawCircle(x - s * 0.42f, y - s * 0.78f, s * 0.48f, fill)
+        canvas.drawCircle(x + s * 0.42f, y - s * 0.78f, s * 0.48f, fill)
         fill.color = 0x33FFFFFF
-        canvas.drawCircle(tree.x - s * 0.18f, tree.y - s * 1.2f, s * 0.26f, fill)
+        canvas.drawCircle(x - s * 0.18f, y - s * 1.2f, s * 0.26f, fill)
     }
 
     private fun drawRoad(canvas: Canvas) {
@@ -283,11 +332,10 @@ class SceneView @JvmOverloads constructor(
         fillRoad(canvas, 0.60f, 0xFF6DB0FF.toInt())
         // 가운데 점선: 달리는 중이면 아래로 흘러내린다
         fill.color = 0xE6FFFFFF.toInt()
-        val count = 16
+        val count = DASH_COUNT
         for (i in 0 until count) {
-            val z = ((i - roadPhase) / count)
-            if (z < 0f) continue
-            val u0 = z.pow(0.75f)
+            val z = ((i.toFloat() / count - travel) % 1f + 1f) % 1f
+            val u0 = distToU(z)
             val u1 = (u0 + 0.012f + 0.03f * (1f - u0)).coerceAtMost(1f)
             path.reset()
             path.moveTo(roadX(u0) - roadHalf(u0) * 0.05f, roadY(u0))
@@ -512,6 +560,13 @@ class SceneView @JvmOverloads constructor(
 
         /** 길 위에 보이는 앞쪽 구간의 길이(전체 경로 대비). */
         const val VIEW_AHEAD = 0.3f
+
+        /** 1초에 달리는 거리. 지평선의 나무가 화면 아래로 지나가기까지 약 30초 걸린다. */
+        const val TRAVEL_PER_SEC = 0.033f
+        const val DASH_COUNT = 16
+        const val BAND_COUNT = 9
+        const val TREE_COUNT = 64
+        const val HOUSE_COUNT = 11
         val TREE_TONES = intArrayOf(0xFF74C277.toInt(), 0xFF8AD08A.toInt(), 0xFF63B36E.toInt())
     }
 }
