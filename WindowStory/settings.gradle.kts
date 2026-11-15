@@ -16,5 +16,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "WindowStory"
+rootProject.name = "창밖 이야기"
 include(":app")

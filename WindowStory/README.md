@@ -6,7 +6,7 @@
 
 ## 실행 방법
 
-1. Android Studio에서 이 폴더(`WindowStory`)를 엽니다.
+1. Android Studio에서 이 폴더(`WindowStory`, 창밖 이야기 앱 소스)를 엽니다.
 2. Device Manager에서 `Pleos_Connect_v2.1.0` 에뮬레이터를 켭니다.
 3. ▶︎(Run 'app')을 누릅니다. 터미널에서는 `./gradlew installDebug`로 설치합니다.
 4. 앱에서 **시연 출발**을 누르면 서울 → 강릉 경포해수욕장 경로(평창휴게소 경유, 약 2시간 20분)가 재생되며 이야기가 진행됩니다.
