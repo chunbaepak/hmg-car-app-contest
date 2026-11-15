@@ -21,7 +21,7 @@ import kotlin.math.sin
  *
  * 달리는 동안에는 길의 점선뿐 아니라 길가의 나무와 집, 땅의 줄무늬가 함께 다가와서
  * 자동차가 앞으로 나아가는 것처럼 보인다.
- * 길 위의 별은 다음 장이 시작되는 지점이고, 깃발은 목적지다.
+ * 길 위의 별은 앞으로 찾을 보물이고, 깃발은 목적지다.
  * 진행률이 오를수록 별과 깃발이 자동차 쪽으로 다가온다.
  */
 class SceneView @JvmOverloads constructor(
@@ -364,17 +364,22 @@ class SceneView @JvmOverloads constructor(
         canvas.drawPath(path, fill)
     }
 
-    /** 다음 장의 별과 목적지 깃발. 앞으로 남은 구간(VIEW_AHEAD)만 길 위에 보인다. */
+    /** 앞으로 찾을 보물(별)과 목적지 깃발. 앞으로 남은 구간(VIEW_AHEAD)만 길 위에 보인다. */
     private fun drawMarkers(canvas: Canvas) {
-        for (i in 1..chapterCount) {
-            val ahead = i / chapterCount.toFloat() - progress
-            if (ahead < 0f || ahead > VIEW_AHEAD) continue
-            val u = CAR_U + (1f - CAR_U) * (ahead / VIEW_AHEAD)
-            val x = roadX(u)
-            val y = roadY(u)
-            val scale = 0.35f + 1.3f * (1f - u).pow(1.3f)
-            if (i == chapterCount) drawFlag(canvas, x, y, scale) else drawStar(canvas, x, y - 26f * scale, 26f * scale, 0xFFFFD45E.toInt())
+        for (i in 0 until chapterCount) {
+            drawMarker(canvas, (i + StoryLineView.TREASURE_AT) / chapterCount, isGoal = false)
         }
+        drawMarker(canvas, 1f, isGoal = true)
+    }
+
+    private fun drawMarker(canvas: Canvas, at: Float, isGoal: Boolean) {
+        val ahead = at - progress
+        if (ahead < 0f || ahead > VIEW_AHEAD) return
+        val u = CAR_U + (1f - CAR_U) * (ahead / VIEW_AHEAD)
+        val x = roadX(u)
+        val y = roadY(u)
+        val scale = 0.35f + 1.3f * (1f - u).pow(1.3f)
+        if (isGoal) drawFlag(canvas, x, y, scale) else drawStar(canvas, x, y - 26f * scale, 26f * scale, 0xFFFFD45E.toInt())
     }
 
     private fun drawFlag(canvas: Canvas, x: Float, y: Float, s: Float) {

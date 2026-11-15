@@ -60,19 +60,6 @@
             </LinearLayout>
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/statusLine"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="14dp"
-            android:background="@drawable/bg_glass_light"
-            android:paddingStart="24dp"
-            android:paddingTop="10dp"
-            android:paddingEnd="24dp"
-            android:paddingBottom="10dp"
-            android:textColor="@color/ink"
-            android:textSize="22sp" />
     </LinearLayout>
 
     <!-- 오른쪽 위: 도착까지 남은 분량, 메뉴 -->
@@ -138,13 +125,24 @@
             android:src="@drawable/ic_menu" />
     </LinearLayout>
 
+    <!-- 이야기 진행선: 출발에서 도착까지, 장과 이벤트를 그림으로 보여 준다 -->
+    <com.changbak.story.ui.StoryLineView
+        android:id="@+id/storyLine"
+        android:layout_width="match_parent"
+        android:layout_height="92dp"
+        android:layout_gravity="top"
+        android:layout_marginStart="150dp"
+        android:layout_marginTop="202dp"
+        android:layout_marginEnd="150dp"
+        android:background="@drawable/bg_line" />
+
     <!-- 말풍선: 낭독 자막과 창밖 퀘스트 -->
     <LinearLayout
         android:layout_width="820dp"
         android:layout_height="wrap_content"
         android:layout_gravity="top|start"
         android:layout_marginStart="250dp"
-        android:layout_marginTop="270dp"
+        android:layout_marginTop="318dp"
         android:orientation="vertical">
 
         <LinearLayout
@@ -195,17 +193,11 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="창밖 퀘스트! 찾으면 눌러 줘"
+                    android:text="창밖 퀘스트! 찾으면 “찾았어!” 하고 말해 줘"
                     android:textColor="@color/pink_dark"
                     android:textSize="28sp"
                     android:textStyle="bold" />
 
-                <Button
-                    android:id="@+id/questButton"
-                    style="@style/PinkButton"
-                    android:layout_width="220dp"
-                    android:layout_height="84dp"
-                    android:text="찾았어!" />
             </LinearLayout>
         </LinearLayout>
 
@@ -220,7 +212,7 @@
             android:rotation="45" />
     </LinearLayout>
 
-    <!-- 오른쪽: 아이가 누르는 둥근 버튼 -->
+    <!-- 오른쪽: 듣는 중 표시와 음악 취향(정차 중에만) -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -229,11 +221,12 @@
         android:layout_marginBottom="44dp"
         android:orientation="vertical">
 
-        <ImageButton
-            android:id="@+id/askButton"
+        <ImageView
+            android:id="@+id/micIndicator"
             style="@style/RoundButton"
-            android:contentDescription="얼마나 남았어?"
-            android:src="@drawable/ic_clock" />
+            android:alpha="0.55"
+            android:contentDescription="듣는 중 표시"
+            android:src="@drawable/ic_mic" />
 
 
         <ImageButton
@@ -337,6 +330,14 @@
             android:textSize="30sp"
             android:textStyle="bold" />
 
+        <TextView
+            android:id="@+id/statusLine"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textColor="@color/ink"
+            android:textSize="21sp" />
+
         <Button
             android:id="@+id/speedButton"
             style="@style/ChoiceButton"
@@ -350,6 +351,22 @@
             android:layout_width="match_parent"
             android:layout_height="80dp"
             android:layout_marginTop="12dp" />
+
+        <Button
+            android:id="@+id/testAskButton"
+            style="@style/ChoiceButton"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_marginTop="12dp"
+            android:text="음성 테스트: “얼마나 남았어?”" />
+
+        <Button
+            android:id="@+id/testFoundButton"
+            style="@style/ChoiceButton"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_marginTop="12dp"
+            android:text="음성 테스트: “찾았어!”" />
 
         <TextView
             android:id="@+id/statusText"
