@@ -73,7 +73,7 @@
 - **기어 D에서는 직접 설치한 앱 화면이 가려진다.** `distractionOptimized` 선언과 무관했다. 원인 미확정. 시연은 기어 P에서 한다.
 - **에뮬레이터의 뒷좌석 벨트 신호는 항상 false다.** 버추얼 콘솔에는 좌석 탑승(Seat Occupancy)만 있고 좌석별 벨트 항목이 없다. Telltales의 Seat Belt는 이 값에 영향을 주지 않았다.
 - **NaviHelper 서비스는 연결된다.** 경로 이벤트 수신은 미확인.
-- 앱 코드는 `WindowStory/` 폴더에 있다. 실행 방법과 남은 문제는 `WindowStory/README.md` 참고.
+- 창밖 이야기 앱 코드는 `WindowStory/` 폴더에 있다(폴더 이름만 영어). 실행 방법과 남은 문제는 `WindowStory/README.md` 참고.
 
 ## 변경: 음성 인식(STT) 제거 (2026-11-15)
 

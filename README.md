@@ -4,6 +4,8 @@
 
 현대자동차그룹 차량용 앱 개발 공모전 출품작이며, Pleos Connect(Android Automotive OS)용 앱입니다. 팀명은 **창가자리**입니다.
 
+> 앱 이름은 **창밖 이야기**입니다. 소스 폴더 이름 `WindowStory`는 개발 도구 호환성 때문에 영어로 둔 것이며, 같은 앱을 가리킵니다.
+
 ![이야기 화면](WindowStory/docs/screen_story.png)
 
 - 공식 안내: https://appdevchallenge.auto-hmg.io/
@@ -17,7 +19,7 @@
 | 주 사용자 | 3~9세 아이(뒷좌석). 운전자는 주행 중 조작할 것이 없음 |
 | 이야기 | 「바다 왕국의 잃어버린 보물」 4장. 아이는 탐험 대장, 여우 루루는 길잡이. 장마다 바다 보물 하나를 찾음 |
 | 사용 SDK | Vehicle 2.3.2, NaviHelper 3.0.5, TextToSpeech 3.3.1, SpeechToText 3.3.1, FusedLocation 1.1.3 |
-| **APK 위치** | [`apk/창가자리_창밖이야기_release.apk`](apk/창가자리_창밖이야기_release.apk) (release, v3 서명, 약 29MB) |
+| **APK 위치** | [`apk/창가자리_창밖 이야기_release.apk`](apk/창가자리_창밖%20이야기_release.apk) (release, v3 서명, 약 29MB) |
 
 ## 어떤 앱인가요
 
@@ -39,14 +41,14 @@
 Pleos Connect 에뮬레이터가 켜져 있는 상태에서 터미널에 입력합니다.
 
 ```bash
-adb install apk/창가자리_창밖이야기_release.apk
+adb install "apk/창가자리_창밖 이야기_release.apk"
 ```
 
 설치하면 앱 목록에 **창밖 이야기**(별 아이콘)가 생깁니다. 처음 실행할 때 위치 권한을 묻는 창이 뜨면 **허용**을 누릅니다. 이 창은 주행 중에는 뜨지 않으므로, 기어를 P로 둔 상태에서 눌러야 합니다.
 
 ### B. 소스에서 빌드
 
-1. Android Studio에서 `WindowStory` 폴더를 엽니다.
+1. Android Studio에서 `WindowStory` 폴더(창밖 이야기 앱 소스)를 엽니다.
 2. Device Manager에서 `Pleos_Connect_v2.1.0` 에뮬레이터를 켭니다(아래 "테스트 환경" 참고).
 3. ▶︎(Run 'app')을 누릅니다. 터미널에서는 `cd WindowStory && ./gradlew installDebug`입니다.
 4. release APK를 직접 만들려면 `./gradlew assembleRelease`입니다. 서명 키(`keystore.properties`)가 없으면 디버그 키로 서명됩니다.
@@ -131,9 +133,9 @@ Device Manager에서 Automotive 형태의 *Pleos Connect v2.1.0* 기기를 만�
 | 폴더·파일 | 내용 |
 |---|---|
 | `apk/` | 제출용 release APK |
-| `WindowStory/` | 앱 소스. 구조와 파일별 역할은 [WindowStory/README.md](WindowStory/README.md) |
+| `WindowStory/` | 창밖 이야기 앱 소스(폴더 이름만 영어).  구조와 파일별 역할은 [WindowStory/README.md](WindowStory/README.md) |
 | `DoorHello/` | Vehicle SDK 연습 예제(문·트렁크 위치 읽기와 변경). 본 앱과는 별개 |
-| `기획서[창밖이야기]_수정본.docx` | 참가 신청서 양식에 기획 내용을 채운 기획서(작성 중 버전, 연락처·서명은 비어 있음) |
+| `기획서[창밖 이야기]_수정본.docx` | 참가 신청서 양식에 기획 내용을 채운 기획서(작성 중 버전, 연락처·서명은 비어 있음) |
 | `개발메모_SDK조사.md` | SDK별 사용법, 권한, 에뮬레이터에서 확인한 것 |
 | `CONTRIBUTING.md` | 같이 작업하는 방법(브랜치와 Pull Request) |
 
