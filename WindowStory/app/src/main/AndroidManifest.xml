@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 차량용(AAOS) 앱 -->
+    <uses-feature
+        android:name="android.hardware.type.automotive"
+        android:required="true" />
+
+    <!-- Vehicle SDK: 좌석 탑승·안전벨트(조회), 기어(조회). 차량 제어 권한은 쓰지 않는다. -->
+    <uses-permission android:name="pleos.car.permission.CAR_SEATS" />
+    <uses-permission android:name="pleos.car.permission.CAR_DRIVE" />
+    <!-- NaviHelper SDK: 경로·주행 정보 조회 -->
+    <uses-permission android:name="pleos.car.permission.NAVI_ROUTE" />
+    <!-- 낭독, 음성 인식 -->
+    <uses-permission android:name="pleos.car.permission.TTS_SERVICE" />
+    <uses-permission android:name="pleos.car.permission.STT_SERVICE" />
+    <!-- 위치 기반 장소 알림 -->
+    <uses-permission android:name="pleos.car.permission.FUSED_LOCATION" />
+
+    <application
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
+
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode"
+            android:exported="true"
+            android:launchMode="singleTask">
+            <!-- 주행 중에도 표시되는 화면. 주행 중에는 조작 없이 음성으로만 진행한다. -->
+            <meta-data
+                android:name="distractionOptimized"
+                android:value="true" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
