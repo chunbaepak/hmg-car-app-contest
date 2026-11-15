@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ink">#3B4160</color>
+    <color name="ink_soft">#7C829E</color>
+    <color name="cream">#FFFDF8F0</color>
+    <color name="glass_dark">#C73A4563</color>
+    <color name="glass_light">#D9FFFFFF</color>
+    <color name="pink">#F27C9B</color>
+    <color name="pink_dark">#DE6386</color>
+    <color name="blue">#4F9DFF</color>
+    <color name="purple">#A98BEA</color>
+    <color name="chip">#EEF1FA</color>
+    <color name="warn">#E5484D</color>
+    <color name="white">#FFFFFF</color>
+</resources>

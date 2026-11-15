@@ -1,0 +1,22 @@
+# macOS
+.DS_Store
+
+# Gradle / Android Studio (각 앱 폴더 안의 것 포함)
+.gradle/
+.kotlin/
+.idea/
+*.iml
+build/
+local.properties
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# Word 임시 파일
+~$*
+
+# 참가 신청서 최종본(개인정보·서명 포함)은 저장소에 올리지 않는다.
+기획서*제출*
+*최종*.docx
+*.pdf
