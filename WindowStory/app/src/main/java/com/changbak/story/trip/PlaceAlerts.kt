@@ -25,7 +25,7 @@ class PlaceAlerts(
     // 서울 → 강릉 경로의 대략적인 좌표. 이후에는 공개 장소 API로 경로 주변 장소를 받아 채운다.
     private val spots = listOf(
         Spot(PlaceType.RIVER, "한강", 37.5290, 127.0570),
-        Spot(PlaceType.TUNNEL, "둔내터널", 37.5080, 128.2330),
+        Spot(PlaceType.TUNNEL, "대관령 터널", 37.6835, 128.7560),
         Spot(PlaceType.SEA, "동해 바다", 37.8056, 128.9080),
     )
 

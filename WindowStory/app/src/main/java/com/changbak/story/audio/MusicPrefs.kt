@@ -11,7 +11,7 @@ class MusicPrefs(context: Context) {
      * 분위기별 곡이 생기면 trackRes만 각각 바꿔 끼우면 된다.
      */
     enum class Mood(val label: String, val prompt: String, val trackRes: Int) {
-        BRIGHT("신나는", "bright and cheerful", R.raw.theme_main),
+        BRIGHT("경쾌한", "bright and cheerful", R.raw.theme_main),
         CALM("잔잔한", "calm and gentle, lullaby-like", R.raw.theme_main),
         ADVENTURE("모험 가득한", "adventurous and playful, marching feel", R.raw.theme_main),
     }
@@ -23,7 +23,7 @@ class MusicPrefs(context: Context) {
     }
 
     enum class Instrument(val label: String, val prompt: String) {
-        XYLOPHONE("실로폰", "xylophone lead"),
+        MARIMBA("마림바", "bouncy marimba lead"),
         PIANO("피아노", "soft piano lead"),
         MUSIC_BOX("오르골", "music box lead"),
         GUITAR("기타", "acoustic guitar lead"),
@@ -40,7 +40,7 @@ class MusicPrefs(context: Context) {
         set(value) = prefs.edit().putInt("tempo", value.ordinal).apply()
 
     var instrument: Instrument
-        get() = Instrument.entries.getOrElse(prefs.getInt("instrument", 0)) { Instrument.XYLOPHONE }
+        get() = Instrument.entries.getOrElse(prefs.getInt("instrument", 0)) { Instrument.MARIMBA }
         set(value) = prefs.edit().putInt("instrument", value.ordinal).apply()
 
     /**
