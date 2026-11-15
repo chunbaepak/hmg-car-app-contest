@@ -2,7 +2,7 @@
 
 **오늘 달리는 경로가 한 편의 동화가 되어, 남은 시간만큼 이야기가 이어지고 목적지에 도착하는 순간 결말을 맺는 뒷좌석 아이용 오디오 동화 앱입니다.**
 
-현대자동차그룹 차량용 앱 개발 공모전 출품작이며, Pleos Connect(Android Automotive OS)용 앱입니다. 팀명은 **창가자리**입니다.
+현대자동차그룹 차량용 앱 개발 공모전 출품작이며, Pleos Connect(Android Automotive OS)용 앱입니다. 팀명은 **f3**입니다.
 
 > 앱 이름은 **창밖 이야기**입니다. 소스 폴더 이름 `WindowStory`는 개발 도구 호환성 때문에 영어로 둔 것이며, 같은 앱을 가리킵니다.
 
@@ -19,7 +19,7 @@
 | 주 사용자 | 3~9세 아이(뒷좌석). 운전자는 주행 중 조작할 것이 없음 |
 | 이야기 | 「바다 왕국의 잃어버린 보물」 4장. 아이는 탐험 대장, 여우 루루는 길잡이. 장마다 바다 보물 하나를 찾음 |
 | 사용 SDK | Vehicle 2.3.2, NaviHelper 3.0.5, TextToSpeech 3.3.1, SpeechToText 3.3.1, FusedLocation 1.1.3 |
-| **APK 위치** | [`apk/창가자리_창밖 이야기_release.apk`](apk/창가자리_창밖%20이야기_release.apk) (release, v3 서명, 약 29MB) |
+| **APK 위치** | [`apk/f3_창밖 이야기_release.apk`](apk/f3_창밖%20이야기_release.apk) (release, v3 서명, 약 29MB) |
 
 ## 어떤 앱인가요
 
@@ -41,7 +41,7 @@
 Pleos Connect 에뮬레이터가 켜져 있는 상태에서 터미널에 입력합니다.
 
 ```bash
-adb install "apk/창가자리_창밖 이야기_release.apk"
+adb install "apk/f3_창밖 이야기_release.apk"
 ```
 
 설치하면 앱 목록에 **창밖 이야기**(별 아이콘)가 생깁니다. 처음 실행할 때 위치 권한을 묻는 창이 뜨면 **허용**을 누릅니다. 이 창은 주행 중에는 뜨지 않으므로, 기어를 P로 둔 상태에서 눌러야 합니다.
