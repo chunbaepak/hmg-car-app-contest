@@ -92,7 +92,7 @@ class NaviTripSource(context: Context, private val listener: TripListener) {
     private fun begin(destName: String, durationSec: Int) {
         totalSec = durationSec
         active = true
-        listener.onTripStarted(destName, durationSec, fromDemo = false)
+        listener.onTripStarted(destName, durationSec, durationSec, fromDemo = false)
     }
 
     private fun onMain(block: () -> Unit) {
