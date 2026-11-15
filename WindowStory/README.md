@@ -20,7 +20,7 @@
 | 에뮬레이터 | Pleos Connect Emulator v2.1.0 (API 34, Apple 칩) |
 | 빌드 | Gradle 9.9.1, Android Gradle Plugin 9.5.1, JDK는 Android Studio 내장 |
 | minSdk / targetSdk | 28 / 34 |
-| SDK | Vehicle 2.3.2, NaviHelper 3.0.5, TextToSpeech 3.3.1, SpeechToText 3.3.1, FusedLocation 1.1.3 |
+| SDK | Vehicle 2.3.2, NaviHelper 3.0.5, TextToSpeech 3.3.1, FusedLocation 1.1.3 |
 
 **기어는 P로 두고 시연합니다.** 에뮬레이터에서 기어를 D로 바꾸면 직접 설치한 앱은 "주행 중에는 사용할 수 없습니다" 화면에 가려집니다(아래 "알려진 문제" 참고).
 
@@ -34,6 +34,8 @@
 6. 도착하면 엔딩과 팡파르가 나옵니다.
 7. 오른쪽의 **음표 버튼**(음악 취향, 정차 중에만 열림)에서 분위기, 빠르기, 악기를 고르면 테마곡과 Suno 생성 요청문이 바뀝니다.
 
+> 이 앱은 **음성 인식을 쓰지 않습니다.** 아이는 화면의 버튼(얼마나 남았어?, 찾았어!)으로 앱과 소통하고, 이야기 낭독(TextToSpeech)만 소리로 나옵니다.
+
 ## 구조
 
 | 파일 | 역할 |
@@ -45,7 +47,6 @@
 | `trip/PlaceAlerts.kt` | FusedLocation SDK 근접 알림으로 실제 주행의 장소 진입 감지 |
 | `vehicle/VehicleSignals.kt` | Vehicle SDK: 뒷좌석 탑승, 안전벨트, 기어 (조회와 알림만) |
 | `voice/Narrator.kt` | TextToSpeech SDK(차량 내장 엔진)로 낭독 |
-| `voice/VoiceInput.kt` | SpeechToText SDK(차량 내장 엔진)로 아이의 말 인식 |
 | `audio/` | 테마곡·효과음 재생, 음악 취향 저장과 Suno 요청문 생성 |
 | `ui/SceneView.kt` | 동화풍 배경 장면(하늘, 언덕, 길, 자동차, 이야기꾼 여우)을 코드로 그림 |
 | `MainActivity.kt` | 화면 구성과 전체 연결 |
@@ -56,18 +57,17 @@
 - TextToSpeech 차량 내장 엔진 낭독 (시작·완료 콜백 수신)
 - Vehicle SDK의 뒷좌석 탑승 감지와 기어 조회
 - 남은 시간 응답, 가상 벨트로 일시정지와 재개
-- NaviHelper, SpeechToText, FusedLocation 서비스 연결과 초기화
+- NaviHelper, FusedLocation 서비스 연결과 초기화
 
 ## 아직 확인하지 못한 것
 
 - **실제 내비 경로 주행:** NaviHelper 서비스 연결까지만 확인했습니다. 경로 이벤트가 실제로 오는지는 확인하지 못했습니다.
-- **음성 인식 결과:** 초기화와 듣기 시작은 오류가 없었지만, 실제로 말을 인식하는지는 마이크 입력으로 확인하지 못했습니다.
 - **실제 소리:** 낭독과 음악의 재생 콜백은 정상이지만, 소리를 귀로 확인하지는 못했습니다.
 - **장소 근접 알림:** 등록 요청까지만 했습니다. 에뮬레이터 위치가 미국에 고정되어 있어 진입 이벤트는 확인하지 못했습니다.
 
 ## 임시로 넣어 둔 것
 
-- **테마곡 3곡과 효과음은 임시 음원입니다.** 단순한 합성음이며 Suno 곡이 아닙니다. Suno 유료 요금제로 만든 곡을 같은 파일명(`res/raw/theme_bright`, `theme_calm`, `theme_adventure`)으로 바꿔 넣으면 됩니다. 요청문은 앱의 음악 취향 화면에 표시됩니다.
+- **테마곡은 Suno로 만든 곡 한 곡**(`res/raw/theme_main.ogg`, "A Little Adventure Begins", 약 1분 55초)입니다. 음악 취향의 분위기를 바꿔도 같은 곡이 나옵니다. 분위기별 곡이 생기면 `audio/MusicPrefs.kt`의 `Mood`에서 곡만 각각 연결하면 됩니다. **효과음(종소리, 물소리 등)은 임시 합성음**입니다.
 - **장소 좌표**(한강, 둔내터널, 경포해변)는 대략적인 값입니다. 공개 장소 API 연동 전까지 쓰는 값입니다.
 - **생성형 AI 이야기 생성**은 아직 없습니다. 내장 이야기 1편으로 동작합니다.
 
