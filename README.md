@@ -134,9 +134,6 @@ Device Manager에서 Automotive 형태의 *Pleos Connect v2.1.0* 기기를 만�
 |---|---|
 | `apk/` | 제출용 release APK |
 | `WindowStory/` | 창밖 이야기 앱 소스(폴더 이름만 영어).  구조와 파일별 역할은 [WindowStory/README.md](WindowStory/README.md) |
-| `DoorHello/` | Vehicle SDK 연습 예제(문·트렁크 위치 읽기와 변경). 본 앱과는 별개 |
-| `기획서[창밖 이야기]_수정본.docx` | 참가 신청서 양식에 기획 내용을 채운 기획서(작성 중 버전, 연락처·서명은 비어 있음) |
-| `개발메모_SDK조사.md` | SDK별 사용법, 권한, 에뮬레이터에서 확인한 것 |
 | `CONTRIBUTING.md` | 같이 작업하는 방법(브랜치와 Pull Request) |
 
 ## 사용한 외부 자원
