@@ -12,6 +12,13 @@ local.properties
 *.aab
 *.keystore
 *.jks
+keystore.properties
+
+# 제출용 release APK는 apk/ 폴더에 올린다(제출 규격).
+!apk/*.apk
+
+# 시연 영상, 접수 메일 초안 등 제출 준비물(개인정보가 들어갈 수 있음)
+제출용/
 
 # Word 임시 파일
 ~$*
